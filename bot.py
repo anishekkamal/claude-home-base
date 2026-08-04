@@ -94,7 +94,11 @@ if not PROJECT_DIR:
 
 CLAUDE_TIMEOUT = int(os.environ.get("CLAUDE_TIMEOUT", "7200"))  # 2 hour default
 
-# Supervisor users get --dangerously-skip-permissions; everyone else gets --permission-mode dontAsk
+# Model and reasoning effort passed to the Claude CLI on spawn.
+CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "claude-opus-4-8[1m]")
+CLAUDE_EFFORT = os.environ.get("CLAUDE_EFFORT", "medium")
+
+# Supervisor users get --permission-mode bypassPermissions; everyone else gets --permission-mode dontAsk
 SUPERVISOR_USERS = set(
     u.strip() for u in os.environ.get("SUPERVISOR_USERS", "").split(",") if u.strip()
 ) or AUTHORIZED_USERS  # default: all authorized users are supervisors
@@ -409,6 +413,8 @@ class LiveSession:
     pending_reactions: list = field(default_factory=list)
     # Highest 100k context threshold already announced in the thread
     ctx_notified_level: int = 0
+    # Temp file receiving the CLI process's stderr, read on failure paths
+    stderr_path: str = ""
 
 
 # thread_ts → LiveSession
@@ -534,8 +540,8 @@ def _spawn_claude_process(
         "--input-format", "stream-json",
         "--output-format", "stream-json",
         "--verbose",
-        "--model", "claude-opus-4-8[1m]",
-        "--effort", "medium",
+        "--model", CLAUDE_MODEL,
+        "--effort", CLAUDE_EFFORT,
     ]
     if user_id in SUPERVISOR_USERS:
         cmd.extend(["--permission-mode", "bypassPermissions"])
@@ -571,9 +577,35 @@ def _spawn_claude_process(
         cwd=PROJECT_DIR,
         env=proc_env,
     )
+    # Carried onto the LiveSession so failure paths can log CLI startup errors.
+    proc.stderr_path = stderr_tmp.name
     perm_mode = "bypassPermissions" if user_id in SUPERVISOR_USERS else "dontAsk"
     logger.info(f"Spawned Claude process pid={proc.pid} (resume={session_id or 'none'}, user={user_id}, permissions={perm_mode})")
+    logger.info(f"Claude process pid={proc.pid} stderr → {stderr_tmp.name}")
     return proc
+
+
+def _log_claude_stderr(session: "LiveSession | None") -> None:
+    """Log the tail of the Claude CLI's stderr file.
+
+    CLI startup failures (bad model, not logged in, permission prompt) only
+    show up there — without this they're invisible. Log only; never Slack.
+    """
+    path = getattr(session, "stderr_path", "") if session is not None else ""
+    if not path:
+        return
+    try:
+        with open(path, "rb") as f:
+            f.seek(0, os.SEEK_END)
+            f.seek(max(0, f.tell() - 2000))
+            tail = f.read().decode("utf-8", "replace").strip()
+    except Exception as e:
+        logger.error(f"Could not read Claude stderr file {path}: {e}")
+        return
+    if tail:
+        logger.error(f"Claude CLI stderr tail ({path}):\n{tail}")
+    else:
+        logger.error(f"Claude CLI stderr file {path} is empty")
 
 
 # Announce context utilization in the thread every N tokens (bot-side only —
@@ -736,6 +768,7 @@ def _get_or_create_live_session(thread_ts: str, channel: str, user_id: str = "")
             channel=channel,
             thread_ts=thread_ts,
             user_id=user_id,
+            stderr_path=getattr(proc, "stderr_path", ""),
         )
         _live_sessions[thread_ts] = session
 
@@ -1483,6 +1516,7 @@ def process_message_async(event: dict) -> None:
         first_text_sent = True
 
     start = time.time()
+    session = None
     try:
         session = _get_or_create_live_session(thread_ts, channel, user_id=user_id)
 
@@ -1525,6 +1559,7 @@ def process_message_async(event: dict) -> None:
                 try: slack_client.reactions_remove(channel=reaction_channel, name="eyes", timestamp=reaction_msg_ts)
                 except Exception: pass
                 logger.error(f"Claude process died without responding in thread {thread_ts}")
+                _log_claude_stderr(session)
                 slack_client.chat_postMessage(
                     channel=channel, thread_ts=thread_ts,
                     text="Sorry, I lost my train of thought. Could you try sending that again?",
@@ -1535,6 +1570,7 @@ def process_message_async(event: dict) -> None:
         try: slack_client.reactions_remove(channel=reaction_channel, name="eyes", timestamp=reaction_msg_ts)
         except Exception: pass
         logger.error(f"Error processing message in thread {thread_ts}: {e}")
+        _log_claude_stderr(session)
         slack_client.chat_postMessage(
             channel=channel, thread_ts=thread_ts,
             text=f"Something went wrong: {e}",
@@ -1980,6 +2016,8 @@ def main():
 
     logger.info(f"{BOT_DISPLAY_NAME} starting on port {PORT}")
     logger.info(f"Authorized users: {AUTHORIZED_USERS or 'all'}")
+    if not AUTHORIZED_USERS:
+        logger.warning("AUTHORIZED_USERS is empty — every member of the Slack workspace can use this bot")
     logger.info(f"Allowed channel substrings: {ALLOWED_CHANNEL_SUBSTRINGS or '(all channels)'}")
     logger.info(f"Project dir: {PROJECT_DIR}")
 
