@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mac setup checklist — claude-home-base</title>
+<style>
+  :root {
+    --bg: #f8fafc; --fg: #0f172a; --muted: #64748b; --card: #ffffff;
+    --border: #e2e8f0; --code-bg: #0f172a; --code-fg: #e2e8f0;
+    --accent: #2563eb; --warn-bg: #fffbeb; --warn-border: #fde68a; --warn-fg: #92400e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f172a; --fg: #e2e8f0; --muted: #94a3b8; --card: #1e293b;
+      --border: #334155; --code-bg: #020617; --code-fg: #e2e8f0;
+      --warn-bg: #451a03; --warn-border: #78350f; --warn-fg: #fbbf24;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.6; font-size: 16px;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 3rem 1.25rem 5rem; }
+  h1 { font-size: 1.7rem; margin-bottom: 0.25rem; }
+  h2 { font-size: 1.2rem; margin: 2.5rem 0 0.75rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+  p, li { color: var(--muted); font-size: 0.95rem; }
+  strong, a { color: var(--fg); }
+  a { color: var(--accent); }
+  code { font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace; font-size: 0.85em;
+         background: var(--border); padding: 0.1rem 0.35rem; border-radius: 0.3rem; color: var(--fg); }
+  .codewrap { position: relative; margin: 0.75rem 0 1rem; }
+  .codewrap pre {
+    background: var(--code-bg); color: var(--code-fg); border-radius: 0.75rem;
+    padding: 1.1rem 1.25rem; overflow-x: auto; margin: 0;
+    font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    font-size: 0.82rem; line-height: 1.7;
+  }
+  .codewrap pre .c { color: #64748b; }
+  .copy-btn {
+    position: absolute; top: 0.6rem; right: 0.6rem;
+    background: #334155; color: #e2e8f0; border: 1px solid #475569;
+    border-radius: 0.45rem; padding: 0.3rem 0.7rem; font-size: 0.75rem;
+    cursor: pointer; font-family: inherit; transition: background 0.15s;
+  }
+  .copy-btn:hover { background: #475569; }
+  .copy-btn.ok { background: #15803d; border-color: #16a34a; }
+  .note {
+    background: var(--warn-bg); border: 1px solid var(--warn-border); color: var(--warn-fg);
+    border-radius: 0.6rem; padding: 0.6rem 0.9rem; font-size: 0.85rem; margin: 0.75rem 0;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 0.75rem 0; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--fg); } td { color: var(--muted); }
+  td code { white-space: nowrap; }
+  ul { padding-left: 1.25rem; }
+</style>
+</head>
+<body>
+<main>
+
+<h1>Mac setup checklist</h1>
+<p>Condensed, ordered runbook for getting the bot answering Slack DMs on a Mac.
+The full guide lives in <code>index.html</code> (GitHub Pages) — this is the minimal path,
+in the order that actually works. Hover any code block and hit <strong>Copy</strong>.</p>
+
+<h2>0. Prerequisites</h2>
+<p><strong>Claude Code CLI ≥ 2.x</strong>, installed natively and logged in
+<strong>as the same macOS user that will run the bot</strong>:</p>
+<div class="codewrap"><pre>curl -fsSL https://claude.ai/install.sh | bash
+claude --version   <span class="c"># needs --effort support (2.x)</span>
+claude -p "hello"  <span class="c"># must reply without prompting</span></pre></div>
+<p>Also: Python 3.11+ (<code>python3 --version</code>), git, and Homebrew.</p>
+
+<h2>1. Slack app</h2>
+<ul>
+  <li><a href="https://api.slack.com/apps" target="_blank">api.slack.com/apps</a> → Create New App →
+      <strong>From an app manifest</strong> → paste the manifest from the setup guide
+      (<code>index.html</code>, Phase 2). Replace the bot name; the request URL placeholder is fine for now.</li>
+  <li>Basic Information → copy the <strong>Signing Secret</strong>.</li>
+  <li>OAuth &amp; Permissions → Install to Workspace → copy the <strong>Bot Token</strong> (<code>xoxb-...</code>).</li>
+</ul>
+<div class="note"><strong>Do not configure Event Subscriptions yet</strong> — Slack verifies the URL
+the moment you enter it, and nothing is running yet. That happens in step 6.</div>
+
+<h2>2. Clone and install</h2>
+<div class="codewrap"><pre>mkdir -p ~/Projects
+cd ~/Projects
+git clone https://github.com/anishekkamal/claude-home-base.git slack-bot
+cd slack-bot
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env</pre></div>
+<div class="note">Run the bot from <code>~/Projects/</code> — macOS blocks launchd from Documents/Desktop.</div>
+
+<h2>3. Fill .env</h2>
+<table>
+  <tr><th>Var</th><th>Value</th></tr>
+  <tr><td><code>SLACK_BOT_TOKEN</code></td><td><code>xoxb-...</code> from step 1</td></tr>
+  <tr><td><code>SLACK_SIGNING_SECRET</code></td><td>from step 1</td></tr>
+  <tr><td><code>PROJECT_DIR</code></td><td>absolute path to the codebase the bot should work in</td></tr>
+  <tr><td><code>AUTHORIZED_USERS</code></td><td><strong>your</strong> Slack member ID — leave it empty and every workspace member can use the bot</td></tr>
+  <tr><td><code>BOT_USER_ID</code></td><td>the bot's own member ID — get it with the command below</td></tr>
+  <tr><td><code>CLAUDE_MODEL</code> / <code>CLAUDE_EFFORT</code></td><td>optional — which model/effort the bot passes to the <code>claude</code> CLI. Set <code>CLAUDE_MODEL</code> to any model your account has if the default alias fails. See <code>.env.example</code>.</td></tr>
+</table>
+<div class="codewrap"><pre>curl -s -H "Authorization: Bearer xoxb-..." https://slack.com/api/auth.test
+<span class="c"># → the "user_id" field (starts with U). Without it, @mentions get duplicate replies.</span></pre></div>
+
+<h2>4. Prepare PROJECT_DIR</h2>
+<div class="codewrap"><pre>cp CLAUDE.md.example "$PROJECT_DIR/CLAUDE.md"   <span class="c"># then fill in the placeholders</span>
+mkdir -p "$PROJECT_DIR/.claude"</pre></div>
+<p>Create <code>$PROJECT_DIR/.claude/settings.json</code> containing at least:</p>
+<div class="codewrap"><pre>{ "skipDangerousModePermissionPrompt": true }</pre></div>
+<div class="note">Without this, supervisor messages hang forever: the bot launches <code>claude</code>
+with <code>--permission-mode bypassPermissions</code>, which asks a confirmation question no one
+can answer in headless mode.</div>
+
+<h2>5. Tunnel + first boot</h2>
+<div class="codewrap"><pre>brew install cloudflared
+<span class="c"># full tunnel setup is in the guide; for a quick trial ngrok also works:</span>
+<span class="c">#   ngrok http 3000</span></pre></div>
+<div class="codewrap"><pre>cd ~/Projects/slack-bot
+source venv/bin/activate
+python bot.py            <span class="c"># → "Bot starting on port 3000"</span></pre></div>
+<div class="codewrap"><pre>curl localhost:3000/health</pre></div>
+<div class="note">Always start the bot <strong>from the repo directory</strong> — <code>.env</code> is loaded
+relative to the current working directory.</div>
+
+<h2>6. Wire Slack (only now)</h2>
+<p>Slack app → <strong>Event Subscriptions</strong> → Enable → Request URL
+<code>https://&lt;your-tunnel&gt;/slack/events</code> → wait for the green <strong>Verified</strong> badge →
+Subscribe to bot events <code>app_mention</code> and <code>message.im</code> → Save.
+Set <strong>Interactivity &amp; Shortcuts</strong> to the same URL if you want button votes to work.</p>
+
+<h2>7. Test</h2>
+<p>DM the bot. 👀 reaction should appear, then a reply.</p>
+<p><strong>If 👀 appears but no reply ever comes:</strong> the <code>claude</code> child process died.
+Check <code>bot.log</code> — the bot logs the path of each spawn's stderr file and dumps its tail
+on failure. Usual causes: CLI not logged in, model not available to your account
+(set <code>CLAUDE_MODEL</code> in <code>.env</code>), missing <code>skipDangerousModePermissionPrompt</code>.</p>
+
+<h2>Known rough edges (skip on day one)</h2>
+<ul>
+  <li><code>plugins/chief-of-staff</code> — its workflow hardcodes the upstream maintainer's paths and
+      usernames (<code>briefing-triage.js</code>), and its email flow needs a separate <code>gws</code> CLI.
+      Needs a rewrite before it works for anyone else.</li>
+  <li><code>misc/file-explorer</code> — ships the maintainer's Tailscale IPs in <code>server.py</code>
+      (<code>TAILSCALE_USERS</code>); edit before use.</li>
+  <li><code>search/</code> — standalone tool with its own venv and index step; not needed for the DM loop.</li>
+  <li><code>jobs/</code> — launchd examples; wire up after the bot itself is stable.</li>
+  <li><code>trust-battery/</code> — off unless you set <code>TRUST_BATTERY_DIR</code>.</li>
+</ul>
+
+</main>
+<script>
+document.querySelectorAll('.codewrap').forEach(function (wrap) {
+  var btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'Copy';
+  btn.addEventListener('click', function () {
+    var text = wrap.querySelector('pre').innerText;
+    function done() {
+      btn.textContent = 'Copied ✓';
+      btn.classList.add('ok');
+      setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('ok'); }, 1500);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done);
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta); done();
+    }
+  });
+  wrap.appendChild(btn);
+});
+</script>
+</body>
+</html>
