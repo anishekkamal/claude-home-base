@@ -106,17 +106,23 @@ cp .env.example .env</pre></div>
   <tr><td><code>SLACK_SIGNING_SECRET</code></td><td><strong>fill in:</strong> from step 1</td></tr>
   <tr><td><code>BOT_USER_ID</code></td><td><strong>fill in:</strong> Goku's own member ID — get it with the command below</td></tr>
   <tr><td><code>AUTHORIZED_USERS</code></td><td>pre-filled: <code>U04BNAB7QRY</code> (Anish)</td></tr>
-  <tr><td><code>PROJECT_DIR</code></td><td>pre-filled: <code>/Users/anishekkamal-ai-server/Projects/bespoke_backend</code></td></tr>
+  <tr><td><code>PROJECT_DIR</code></td><td>pre-filled: <code>/Users/anishekkamal-ai-server/Projects/bespoke</code> — the workspace dir holding all Bespoke repos</td></tr>
   <tr><td><code>CLAUDE_MODEL</code> / <code>CLAUDE_EFFORT</code></td><td>pre-filled: <code>claude-opus-5[1m]</code> / <code>medium</code> — swap for any model your account has if spawns fail</td></tr>
 </table>
 <div class="codewrap"><pre>curl -s -H "Authorization: Bearer xoxb-..." https://slack.com/api/auth.test
 <span class="c"># → the "user_id" field (starts with U). Without it, @mentions get duplicate replies.</span></pre></div>
 
 <h2>4. Prepare PROJECT_DIR</h2>
-<div class="codewrap"><pre>cd ~/Projects/slack-bot
-cp CLAUDE.md.example ~/Projects/bespoke_backend/CLAUDE.md   <span class="c"># then fill in the placeholders</span>
-mkdir -p ~/Projects/bespoke_backend/.claude
-echo '{ "skipDangerousModePermissionPrompt": true }' > ~/Projects/bespoke_backend/.claude/settings.json</pre></div>
+<p><code>PROJECT_DIR</code> is a workspace directory that holds all the Bespoke repos, with Goku's
+operations manual at its root. Each repo keeps its own <code>CLAUDE.md</code> — layered, not replaced.</p>
+<div class="codewrap"><pre>mkdir -p ~/Projects/bespoke
+mv ~/Projects/bespoke_backend ~/Projects/bespoke/bespoke_backend   <span class="c"># skip if already inside</span>
+mkdir -p ~/Projects/bespoke/.claude
+echo '{ "skipDangerousModePermissionPrompt": true }' > ~/Projects/bespoke/.claude/settings.json</pre></div>
+<p>Then paste Goku's prepared operations manual (from the Windows machine, kept out of this
+public repo) to <code>~/Projects/bespoke/CLAUDE.md</code>.</p>
+<div class="note"><strong>Do not</strong> overwrite <code>bespoke_backend/CLAUDE.md</code> — that repo ships its own
+with load-bearing deploy rules. Goku's manual sits one level up and layers on top of it.</div>
 <div class="note">Without this, supervisor messages hang forever: the bot launches <code>claude</code>
 with <code>--permission-mode bypassPermissions</code>, which asks a confirmation question no one
 can answer in headless mode.</div>
