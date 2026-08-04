@@ -21,6 +21,10 @@ A complete setup for turning a spare Mac (Mini, MacBook Air, whatever) into a de
 
 ## Quick start
 
+> **In a hurry on a Mac?** There's a condensed, copy-paste-ready checklist at
+> **[anishekkamal.github.io/claude-home-base/SETUP-MAC.html](https://anishekkamal.github.io/claude-home-base/SETUP-MAC.html)**
+> ([source](SETUP-MAC.html)) — the minimal path in the order that actually works.
+
 1. **Follow the setup guide** at **[nityeshaga.github.io/claude-home-base](https://nityeshaga.github.io/claude-home-base/)** — it walks you through everything step by step
 2. **Set up hardware** — plug in your Mac, configure it for always-on use
 3. **Deploy the Slack bot** — Cloudflare Tunnel + Flask, production-standard
