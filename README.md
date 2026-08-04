@@ -43,21 +43,24 @@ plugins/
 │       └── make-precise-ui/  # Pixel-perfect UI from Figma designs
 ├── creative/           # Creative direction, writing, brainstorming
 │   └── skills/
-│       ├── creative-lead/    # Creative direction for any project
-│       ├── lets-brainstorm/  # Timed coaching sessions
-│       ├── help-me-write/    # Collaborative writing (keeps your voice)
-│       └── interview-me/     # Timed discovery interviews
+│       ├── creative-lead/     # Creative direction for any project
+│       ├── lets-brainstorm/   # Timed coaching sessions
+│       ├── help-me-write/     # Collaborative writing (keeps your voice)
+│       ├── interview-me/      # Timed discovery interviews
+│       └── create-zine-comic/ # Turn a story into a zine/comic layout
 ├── more-ai/            # Gemini and OpenAI image generation, thinking
 │   └── skills/
 │       ├── gemini-imagegen/
 │       ├── openai-imagegen/
 │       └── gemini-thinking/
-└── experimental/       # Operational workflows, debiasing, prompt engineering
+└── chief-of-staff/     # Operational workflows
     └── skills/
-        ├── briefing/         # Email, briefs, action tracking
-        ├── are-you-sure/     # Blind debiasing for claims and opinions
-        ├── prompt-engineer/  # AI prompt writing and review
-        └── investigate-yourself/  # Forensic self-diagnosis
+        └── briefing/         # Email, briefs, action tracking
+
+search/                 # Hybrid keyword + vector search over local files and conversation history (standalone, own venv)
+jobs/                   # Example scheduled background jobs (launchd, macOS)
+misc/                   # Extras, including a standalone file-explorer dashboard
+trust-battery/          # Opt-in trust scoring between your AI and teammates (enable via TRUST_BATTERY_DIR)
 ```
 
 ## Architecture
