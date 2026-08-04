@@ -79,7 +79,8 @@ claude -p "hello"  <span class="c"># must reply without prompting</span></pre></
   <li><a href="https://api.slack.com/apps" target="_blank">api.slack.com/apps</a> → Create New App →
       <strong>From an app manifest</strong> → paste
       <a href="https://raw.githubusercontent.com/anishekkamal/claude-home-base/main/slack-manifest.json" target="_blank"><code>slack-manifest.json</code></a>
-      from the repo root. Replace the bot name; the request URL placeholder is fine for now.</li>
+      from the repo root — already pre-filled with the bot name (<strong>Goku</strong>) and request URL
+      (<code>bot.anishekkamal.com</code>); paste as-is.</li>
   <li>Basic Information → copy the <strong>Signing Secret</strong>.</li>
   <li>OAuth &amp; Permissions → Install to Workspace → copy the <strong>Bot Token</strong> (<code>xoxb-...</code>).</li>
 </ul>
@@ -120,9 +121,22 @@ with <code>--permission-mode bypassPermissions</code>, which asks a confirmation
 can answer in headless mode.</div>
 
 <h2>5. Tunnel + first boot</h2>
+<p>Prerequisite: <code>anishekkamal.com</code> must be on Cloudflare (nameservers pointed there).
+For a quick trial without the domain, <code>ngrok http 3000</code> works too.</p>
 <div class="codewrap"><pre>brew install cloudflared
-<span class="c"># full tunnel setup is in the guide; for a quick trial ngrok also works:</span>
-<span class="c">#   ngrok http 3000</span></pre></div>
+cloudflared tunnel login                          <span class="c"># opens browser</span>
+cloudflared tunnel create goku                    <span class="c"># note the UUID it prints</span>
+cloudflared tunnel route dns goku bot.anishekkamal.com</pre></div>
+<p>Create <code>~/.cloudflared/config.yml</code> (replace <code>TUNNEL-UUID</code> and the macOS username):</p>
+<div class="codewrap"><pre>tunnel: TUNNEL-UUID
+credentials-file: /Users/YOUR_MAC_USERNAME/.cloudflared/TUNNEL-UUID.json
+
+ingress:
+  - hostname: bot.anishekkamal.com
+    service: http://localhost:3000
+  - service: http_status:404</pre></div>
+<div class="codewrap"><pre>cloudflared tunnel run goku                       <span class="c"># test it</span>
+sudo cloudflared service install                  <span class="c"># then install as a persistent service</span></pre></div>
 <div class="codewrap"><pre>cd ~/Projects/slack-bot
 source venv/bin/activate
 python bot.py            <span class="c"># → "Bot starting on port 3000"</span></pre></div>
@@ -132,7 +146,7 @@ relative to the current working directory.</div>
 
 <h2>6. Wire Slack (only now)</h2>
 <p>Slack app → <strong>Event Subscriptions</strong> → Enable → Request URL
-<code>https://&lt;your-tunnel&gt;/slack/events</code> → wait for the green <strong>Verified</strong> badge →
+<code>https://bot.anishekkamal.com/slack/events</code> → wait for the green <strong>Verified</strong> badge →
 Subscribe to bot events <code>app_mention</code> and <code>message.im</code> → Save.
 Set <strong>Interactivity &amp; Shortcuts</strong> to the same URL if you want button votes to work.</p>
 

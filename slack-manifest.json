@@ -1,12 +1,12 @@
 {
   "display_information": {
-    "name": "Your Bot Name",
-    "description": "AI cofounder for your product",
+    "name": "Goku",
+    "description": "Anishek's AI cofounder",
     "background_color": "#0f172a"
   },
   "features": {
     "bot_user": {
-      "display_name": "Your Bot Name",
+      "display_name": "Goku",
       "always_online": true
     }
   },
@@ -46,7 +46,7 @@
   },
   "settings": {
     "event_subscriptions": {
-      "request_url": "https://bot.yourdomain.com/slack/events",
+      "request_url": "https://bot.anishekkamal.com/slack/events",
       "bot_events": [
         "app_mention",
         "message.im",
