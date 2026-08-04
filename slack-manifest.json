@@ -1,0 +1,65 @@
+{
+  "display_information": {
+    "name": "Your Bot Name",
+    "description": "AI cofounder for your product",
+    "background_color": "#0f172a"
+  },
+  "features": {
+    "bot_user": {
+      "display_name": "Your Bot Name",
+      "always_online": true
+    }
+  },
+  "oauth_config": {
+    "scopes": {
+      "bot": [
+        "app_mentions:read",
+        "channels:history",
+        "channels:join",
+        "channels:read",
+        "chat:write",
+        "chat:write.customize",
+        "commands",
+        "files:read",
+        "files:write",
+        "groups:history",
+        "groups:read",
+        "im:history",
+        "im:read",
+        "im:write",
+        "links:read",
+        "mpim:history",
+        "mpim:read",
+        "mpim:write",
+        "pins:read",
+        "pins:write",
+        "reactions:read",
+        "reactions:write",
+        "team:read",
+        "users:read",
+        "users:read.email",
+        "users.profile:read",
+        "bookmarks:read",
+        "metadata.message:read"
+      ]
+    }
+  },
+  "settings": {
+    "event_subscriptions": {
+      "request_url": "https://bot.yourdomain.com/slack/events",
+      "bot_events": [
+        "app_mention",
+        "message.im",
+        "message.channels",
+        "message.groups",
+        "message.mpim",
+        "member_joined_channel",
+        "reaction_added",
+        "file_shared"
+      ]
+    },
+    "org_deploy_enabled": false,
+    "socket_mode_enabled": false,
+    "token_rotation_enabled": false
+  }
+}

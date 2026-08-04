@@ -77,8 +77,9 @@ claude -p "hello"  <span class="c"># must reply without prompting</span></pre></
 <h2>1. Slack app</h2>
 <ul>
   <li><a href="https://api.slack.com/apps" target="_blank">api.slack.com/apps</a> → Create New App →
-      <strong>From an app manifest</strong> → paste the manifest from the setup guide
-      (<code>index.html</code>, Phase 2). Replace the bot name; the request URL placeholder is fine for now.</li>
+      <strong>From an app manifest</strong> → paste
+      <a href="https://raw.githubusercontent.com/anishekkamal/claude-home-base/main/slack-manifest.json" target="_blank"><code>slack-manifest.json</code></a>
+      from the repo root. Replace the bot name; the request URL placeholder is fine for now.</li>
   <li>Basic Information → copy the <strong>Signing Secret</strong>.</li>
   <li>OAuth &amp; Permissions → Install to Workspace → copy the <strong>Bot Token</strong> (<code>xoxb-...</code>).</li>
 </ul>
