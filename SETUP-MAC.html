@@ -99,23 +99,24 @@ cp .env.example .env</pre></div>
 <div class="note">Run the bot from <code>~/Projects/</code> — macOS blocks launchd from Documents/Desktop.</div>
 
 <h2>3. Fill .env</h2>
+<p>Most values are already pre-filled in <code>.env.example</code>. Only three need editing after step 1:</p>
 <table>
   <tr><th>Var</th><th>Value</th></tr>
-  <tr><td><code>SLACK_BOT_TOKEN</code></td><td><code>xoxb-...</code> from step 1</td></tr>
-  <tr><td><code>SLACK_SIGNING_SECRET</code></td><td>from step 1</td></tr>
-  <tr><td><code>PROJECT_DIR</code></td><td>absolute path to the codebase the bot should work in</td></tr>
-  <tr><td><code>AUTHORIZED_USERS</code></td><td><strong>your</strong> Slack member ID — leave it empty and every workspace member can use the bot</td></tr>
-  <tr><td><code>BOT_USER_ID</code></td><td>the bot's own member ID — get it with the command below</td></tr>
-  <tr><td><code>CLAUDE_MODEL</code> / <code>CLAUDE_EFFORT</code></td><td>optional — which model/effort the bot passes to the <code>claude</code> CLI. Set <code>CLAUDE_MODEL</code> to any model your account has if the default alias fails. See <code>.env.example</code>.</td></tr>
+  <tr><td><code>SLACK_BOT_TOKEN</code></td><td><strong>fill in:</strong> <code>xoxb-...</code> from step 1</td></tr>
+  <tr><td><code>SLACK_SIGNING_SECRET</code></td><td><strong>fill in:</strong> from step 1</td></tr>
+  <tr><td><code>BOT_USER_ID</code></td><td><strong>fill in:</strong> Goku's own member ID — get it with the command below</td></tr>
+  <tr><td><code>AUTHORIZED_USERS</code></td><td>pre-filled: <code>U04BNAB7QRY</code> (Anish)</td></tr>
+  <tr><td><code>PROJECT_DIR</code></td><td>pre-filled: <code>/Users/anishekkamal-ai-server/Projects/bespoke_backend</code></td></tr>
+  <tr><td><code>CLAUDE_MODEL</code> / <code>CLAUDE_EFFORT</code></td><td>pre-filled: <code>claude-opus-5[1m]</code> / <code>medium</code> — swap for any model your account has if spawns fail</td></tr>
 </table>
 <div class="codewrap"><pre>curl -s -H "Authorization: Bearer xoxb-..." https://slack.com/api/auth.test
 <span class="c"># → the "user_id" field (starts with U). Without it, @mentions get duplicate replies.</span></pre></div>
 
 <h2>4. Prepare PROJECT_DIR</h2>
-<div class="codewrap"><pre>cp CLAUDE.md.example "$PROJECT_DIR/CLAUDE.md"   <span class="c"># then fill in the placeholders</span>
-mkdir -p "$PROJECT_DIR/.claude"</pre></div>
-<p>Create <code>$PROJECT_DIR/.claude/settings.json</code> containing at least:</p>
-<div class="codewrap"><pre>{ "skipDangerousModePermissionPrompt": true }</pre></div>
+<div class="codewrap"><pre>cd ~/Projects/slack-bot
+cp CLAUDE.md.example ~/Projects/bespoke_backend/CLAUDE.md   <span class="c"># then fill in the placeholders</span>
+mkdir -p ~/Projects/bespoke_backend/.claude
+echo '{ "skipDangerousModePermissionPrompt": true }' > ~/Projects/bespoke_backend/.claude/settings.json</pre></div>
 <div class="note">Without this, supervisor messages hang forever: the bot launches <code>claude</code>
 with <code>--permission-mode bypassPermissions</code>, which asks a confirmation question no one
 can answer in headless mode.</div>
@@ -127,9 +128,9 @@ For a quick trial without the domain, <code>ngrok http 3000</code> works too.</p
 cloudflared tunnel login                          <span class="c"># opens browser</span>
 cloudflared tunnel create goku                    <span class="c"># note the UUID it prints</span>
 cloudflared tunnel route dns goku bot.anishekkamal.com</pre></div>
-<p>Create <code>~/.cloudflared/config.yml</code> (replace <code>TUNNEL-UUID</code> and the macOS username):</p>
+<p>Create <code>~/.cloudflared/config.yml</code> (replace <code>TUNNEL-UUID</code> with the UUID from above):</p>
 <div class="codewrap"><pre>tunnel: TUNNEL-UUID
-credentials-file: /Users/YOUR_MAC_USERNAME/.cloudflared/TUNNEL-UUID.json
+credentials-file: /Users/anishekkamal-ai-server/.cloudflared/TUNNEL-UUID.json
 
 ingress:
   - hostname: bot.anishekkamal.com
