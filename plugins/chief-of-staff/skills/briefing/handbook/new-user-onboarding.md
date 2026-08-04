@@ -2,11 +2,11 @@
 
 **Step 1: Learn archiving behavior by observation**
 
-Use the snapshot script at `${CLAUDE_PLUGIN_ROOT}/skills/chief-of-staff/scripts/snapshot_inbox.py`:
+Use the snapshot script at `${CLAUDE_PLUGIN_ROOT}/skills/briefing/scripts/snapshot_inbox.py`:
 
 ```bash
 # 1. Take a snapshot of the current inbox (saves to /tmp/inbox_before_*)
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/chief-of-staff/scripts/snapshot_inbox.py" before
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/briefing/scripts/snapshot_inbox.py" before
 
 # 2. Show the user the snapshot
 cat /tmp/inbox_before_snapshot.txt
@@ -14,10 +14,10 @@ cat /tmp/inbox_before_snapshot.txt
 # 3. Ask them to archive the ones they don't need. Wait.
 
 # 4. Take a second snapshot after they're done
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/chief-of-staff/scripts/snapshot_inbox.py" after
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/briefing/scripts/snapshot_inbox.py" after
 
 # 5. Diff the two — shows what was archived vs kept
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/chief-of-staff/scripts/snapshot_inbox.py" diff
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/briefing/scripts/snapshot_inbox.py" diff
 ```
 
 - Read `/tmp/inbox_diff.json` for the structured diff — it tells you exactly which emails were archived and which were kept - if the user archived everything, the 2 files would be completely different but that's usually not the case. that's your clue.
